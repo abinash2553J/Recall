@@ -1,11 +1,14 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { getNotes, createNote, updateNote, deleteNote } from '../notesAPI'
+import colors from '../assets/colors.json'
 
 const NoteContext = createContext()
 
 export const NoteProvider = ({ children }) => {
     const [notes, setNotes] = useState([])
     const [loading, setLoading] = useState(true)
+    const [selectedNote, setSelectedNote] = useState(null)
+    const startingPos = useRef(10)
 
     useEffect(() => {
         getNotes()
@@ -15,17 +18,19 @@ export const NoteProvider = ({ children }) => {
     }, [])
 
     const addNote = async () => {
-        const newNote = {
+        const payload = {
             body: JSON.stringify(''),
-            colors: JSON.stringify({
-                colorBody: '#fff9b1',
-                colorHeader: '#fbe158',
-                colorText: '#2b2b2b',
+            colors: JSON.stringify(colors[0]),
+            position: JSON.stringify({
+                x: startingPos.current,
+                y: startingPos.current,
             }),
-            position: JSON.stringify({ x: 50, y: 50 }),
         }
-        const created = await createNote(newNote)
-        setNotes((prev) => [...prev, created])
+
+        startingPos.current += 10
+
+        const created = await createNote(payload)
+        setNotes((prev) => [created, ...prev])
     }
 
     const removeNote = async (id) => {
@@ -38,9 +43,45 @@ export const NoteProvider = ({ children }) => {
         await updateNote(id, payload)
     }
 
+    const changeNoteColor = async (color) => {
+        if (!selectedNote) {
+            alert('You must select a note before changing colors')
+            return
+        }
+
+        const currentNoteIndex = notes.findIndex(
+            (note) => note.id === selectedNote.id
+        )
+        if (currentNoteIndex === -1) return
+
+        const updatedNote = {
+            ...notes[currentNoteIndex],
+            colors: JSON.stringify(color),
+        }
+
+        const newNotes = [...notes]
+        newNotes[currentNoteIndex] = updatedNote
+        setNotes(newNotes)
+
+        try {
+            await updateNote(selectedNote.id, { colors: JSON.stringify(color) })
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
     return (
         <NoteContext.Provider
-            value={{ notes, loading, addNote, removeNote, saveNote }}
+            value={{
+                notes,
+                loading,
+                addNote,
+                removeNote,
+                saveNote,
+                selectedNote,
+                setSelectedNote,
+                changeNoteColor,
+            }}
         >
             {children}
         </NoteContext.Provider>

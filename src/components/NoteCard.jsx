@@ -5,7 +5,7 @@ import { useNotes } from '../context/NoteContext'
 import DeleteButton from './DeleteButton'
 
 const NoteCard = ({ note }) => {
-    const { saveNote } = useNotes()
+    const { saveNote, setSelectedNote } = useNotes()
 
     const body = JSON.parse(note.body)
     const [position, setPositon] = useState(JSON.parse(note.position))
@@ -19,6 +19,7 @@ const NoteCard = ({ note }) => {
 
     useEffect(() => {
         autoGrow(textAreaRef)
+        setZIndex(cardRef.current)
 
         return () => {
             document.removeEventListener('mousemove', mouseMove)
@@ -31,6 +32,7 @@ const NoteCard = ({ note }) => {
         if (e.target.className !== 'card-header') return
 
         setZIndex(cardRef.current)
+        setSelectedNote(note)
         mouseStartPos.x = e.clientX
         mouseStartPos.y = e.clientY
 
@@ -110,6 +112,10 @@ const NoteCard = ({ note }) => {
                     style={{ color: colors.colorText }}
                     defaultValue={body}
                     onInput={() => autoGrow(textAreaRef)}
+                    onFocus={() => {
+                        setZIndex(cardRef.current)
+                        setSelectedNote(note)
+                    }}
                     onKeyUp={() => {
                         debounceSave('body', textAreaRef.current.value)
                     }}
