@@ -1,16 +1,29 @@
-# React + Vite
+# Recall
+ 
+A drag-and-drop sticky notes app built with React and Supabase. Create notes, move them around a freeform canvas, recolor them, and edit their text — everything autosaves to a Postgres backend as you go.
+ 
+## Features
+ 
+- **Freeform canvas** — notes can be dragged anywhere on the board; position persists across reloads
+- **Debounced autosave** — text and position changes save automatically 2 seconds after you stop editing, with a "Saving..." indicator in each note's header
+- **Color picker** — select a note, then click a swatch in the side controls to recolor it
+- **Add / delete notes** — a floating "+" button creates a new note; each note has its own delete button
+- **Persisted backend** — all notes are stored in Supabase (Postgres) and survive refreshes/reloads
+## Tech Stack
+ 
+- **Frontend:** React (Vite)
+- **Backend:** [Supabase](https://supabase.com) — Postgres database + auto-generated REST API
+- **Styling:** plain CSS (no framework)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## How It Works
+ 
+- **State** lives in `NoteContext`, which wraps the app and exposes notes plus CRUD methods (`addNote`, `removeNote`, `saveNote`, `changeNoteColor`) via the `useNotes()` hook.
+- **Note data** (`body`, `colors`, `position`) is stored as stringified JSON in the database and parsed back into objects on the client.
+- **Dragging** tracks mouse movement while the header is held down, then saves the final position via a debounced save on mouse-up.
+- **Text edits** save via the same debounce, 2 seconds after the last keystroke.
+- **Color changes** apply to whichever note was last selected (clicked or focused), and clicking empty canvas space deselects the current note.
+## Possible Next Steps
+ 
+- Real user accounts with per-user note scoping (currently all notes are globally accessible)
+- Realtime sync across tabs/devices via Supabase Realtime subscriptions
+- Search/filter across notes
